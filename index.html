@@ -3,11 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Choosen Number Frequency Heatmap (1-30)</title>
-    <!-- Load Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Configure Tailwind for Inter font and custom colors -->
-    <script>
+    <title>Number Frequency Heatmap (Enhanced Depth)</title>
+    <!-- Load Tailwind CSS --><script src="https://cdn.tailwindcss.com"></script>
+    <!-- Configure Tailwind for Inter font and custom colors --><script>
         tailwind.config = {
             theme: {
                 extend: {
@@ -15,35 +13,64 @@
                         sans: ['Inter', 'sans-serif'],
                     },
                     colors: {
-                        'custom-orange': '#ff5722', // A vibrant orange for the max count
+                        'custom-accent': '#FFD700', // Gold/Bright Yellow
                     }
                 }
             }
         }
     </script>
     <style>
-        /* Custom styles for the grid cells */
+        .gradient-bg {
+            background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 50%, #5b21b6 100%);
+        }
+
         .grid-cell {
-            /* aspect-ratio ensures cells are square and scale fluidly */
             aspect-ratio: 1 / 1;
             display: flex;
             align-items: center;
             justify-content: center;
             font-weight: 600;
-            color: #1f2937; /* Dark text */
-            transition: background-color 0.3s ease;
-            box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.1);
+            color: #FFD700; 
+            position: relative;
+            overflow: hidden; 
+            transition: all 0.3s ease-out; /* Smooth transition for scale, transform, shadow */
+            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+            border-radius: 0.5rem;
+            border: 2px solid transparent; 
         }
 
-        /* Enforce 6 columns for the 5x6 grid (30 numbers total) */
+        /* Float Effect: Applied to Max Frequency Cells - Enhanced */
+        .max-freq-float {
+            box-shadow: 
+                0 0 30px rgba(255, 215, 0, 0.8), /* Stronger, wider glow */
+                0 0 12px rgba(255, 215, 0, 0.5),  /* Brighter inner highlight */
+                0 10px 25px rgba(0, 0, 0, 0.9);   /* More pronounced vertical lift shadow */
+            
+            transform: translateY(-8px) scale(1.08); /* Lift higher, scale larger */
+            border-color: #FFD700;
+        }
+
+        /* The background element inside the cell to handle opacity and blur */
+        .grid-cell-bg {
+            /* Now uses a slightly darker base for low frequency, making it "recede" */
+            background-color: rgba(0, 0, 0, 0.7); 
+            transition: all 0.5s ease-out; 
+            z-index: 1; 
+        }
+
+        .grid-cell > * {
+            position: relative;
+            z-index: 2;
+        }
+
         .heatmap-grid {
             display: grid;
-            grid-template-columns: repeat(6, 1fr);
         }
 
-        /* Responsive adjustments for the grid text */
         .cell-number-label {
-            font-size: 0.65rem; /* Base size for mobile */
+            font-size: 0.65rem; 
+            color: rgba(255, 255, 255, 0.5); 
+            opacity: 1 !important; 
         }
         @media (min-width: 640px) {
             .cell-number-label {
@@ -52,39 +79,46 @@
         }
     </style>
 </head>
-<body class="bg-gray-50 min-h-screen font-sans p-4 sm:p-8">
+<body class="gradient-bg min-h-screen font-sans p-4 sm:p-8">
 
-    <div class="container mx-auto max-w-4xl bg-white shadow-2xl rounded-xl p-6 lg:p-10">
-        <h1 class="text-3xl sm:text-4xl font-extrabold text-gray-900 mb-2">
-            Number Frequency Heatmap (1-30)
+    <div class="container mx-auto max-w-4xl bg-white/5 shadow-2xl rounded-xl p-6 lg:p-10 backdrop-blur-sm border border-white/10">
+        
+        <h1 class="text-3xl sm:text-4xl font-extrabold text-white mb-2">
+            Dynamic Frequency Visualization (1-30)
         </h1>
-        <p class="text-gray-500 mb-6 border-b pb-4">
-            Input numbers (1-30) separated by commas or new lines. The 5x6 grid will update instantly. **The input is saved automatically.**
+        <p class="text-gray-300 mb-6 border-b border-white/20 pb-4">
+            Input numbers (1-30). Max frequency cells will now **float higher** with a more pronounced glowing effect.
         </p>
 
-        <!-- Input Area -->
-        <div class="mb-8">
-            <label for="numberInput" class="block text-lg font-medium text-gray-700 mb-2">Enter Numbers (1-30)</label>
+        <!-- Input Area --><div class="mb-8">
+            <label for="numberInput" class="block text-lg font-medium text-white mb-2">Enter Numbers (1-30)</label>
             <textarea
                 id="numberInput"
                 rows="8"
-                class="w-full p-4 border-2 border-indigo-500 rounded-lg shadow-inner focus:ring-custom-orange focus:border-custom-orange transition duration-150 ease-in-out resize-none text-base"
+                class="w-full p-4 border-2 border-custom-accent rounded-lg shadow-inner focus:ring-custom-accent focus:border-custom-accent transition duration-150 ease-in-out resize-none text-base bg-gray-800 text-white"
                 placeholder="Example:
 4,10,17,23,29
 2,8,25
 5,12,26"
             ></textarea>
         </div>
-
-        <!-- Heatmap Grid Container (5 rows, 6 columns = 30 cells) -->
-        <div id="heatmapGrid" class="heatmap-grid gap-1 p-2 bg-gray-200 rounded-xl border border-gray-300 shadow-lg">
-            <!-- Grid cells will be generated here by JavaScript -->
+        
+        <!-- Grid Configuration Selector --><div class="mb-6 flex justify-between items-center">
+            <label for="gridSelector" class="block text-sm font-medium text-gray-300">Select Grid Dimensions (Total 30 Cells):</label>
+            <select id="gridSelector" class="p-2 border border-gray-500 rounded-md shadow-sm focus:ring-custom-accent focus:border-custom-accent bg-gray-700 text-white">
+                <option value="6">5 Rows x 6 Columns</option>
+                <option value="5">6 Rows x 5 Columns</option>
+                <option value="10">3 Rows x 10 Columns</option>
+                <option value="3">10 Rows x 3 Columns</option>
+            </select>
         </div>
 
-        <!-- Stats/Legend -->
-        <div class="mt-6 p-4 bg-indigo-50 rounded-lg border border-indigo-200 flex flex-col sm:flex-row justify-between text-sm shadow-inner">
-            <p id="totalCount" class="text-gray-600 mb-2 sm:mb-0">Total Valid Numbers: 0</p>
-            <p id="maxFrequency" class="text-gray-600">Max Frequency: 0</p>
+        <!-- Heatmap Grid Container --><div id="heatmapGrid" class="heatmap-grid gap-1 p-2 rounded-xl border border-white/20 shadow-lg">
+            <!-- Grid cells will be generated here by JavaScript --></div>
+
+        <!-- Stats/Legend --><div class="mt-6 p-4 bg-white/10 rounded-lg border border-white/20 flex flex-col sm:flex-row justify-between text-sm shadow-inner text-gray-300">
+            <p id="totalCount" class="mb-2 sm:mb-0">Total Valid Numbers: 0</p>
+            <p id="maxFrequency">Max Frequency: 0</p>
         </div>
 
     </div>
@@ -92,20 +126,19 @@
     <script>
         const inputElement = document.getElementById('numberInput');
         const gridContainer = document.getElementById('heatmapGrid');
+        const gridSelector = document.getElementById('gridSelector');
         const totalCountDisplay = document.getElementById('totalCount');
         const maxFrequencyDisplay = document.getElementById('maxFrequency');
-        const GRID_SIZE = 30; // The grid represents numbers 1 through 30
-        const localStorageKey = 'numberInputData';
+        
+        const GRID_SIZE = 30; 
+        const inputDataKey = 'numberInputData';
+        const gridConfigKey = 'gridConfigCols';
 
-        // --- Local Storage Functions ---
-
-        /** Loads data from local storage and populates the textarea. */
-        function loadFromLocalStorage() {
-            const savedData = localStorage.getItem(localStorageKey);
+        function loadInputFromLocalStorage() {
+            const savedData = localStorage.getItem(inputDataKey);
             if (savedData) {
                 inputElement.value = savedData;
             } else {
-                 // Initial placeholder data if nothing is saved
                 inputElement.value = `4,10,17,23,29
 2,8,25
 5,12,26
@@ -117,72 +150,64 @@
             }
         }
 
-        /** Saves the current textarea content to local storage. */
-        function saveToLocalStorage(data) {
+        function saveInputToLocalStorage(data) {
             try {
-                localStorage.setItem(localStorageKey, data);
+                localStorage.setItem(inputDataKey, data);
             } catch (e) {
-                console.error("Could not save to local storage:", e);
+                console.error("Could not save input to local storage:", e);
+            }
+        }
+        
+        function loadGridConfig() {
+            const savedCols = localStorage.getItem(gridConfigKey);
+            if (savedCols) {
+                gridSelector.value = savedCols;
             }
         }
 
-        // --- Utility Functions ---
-
-        /**
-         * Converts frequency to a color on the White -> Orange gradient (RGB interpolation).
-         * @param {number} count - The frequency count for a number.
-         * @param {number} maxCount - The highest frequency found in the dataset.
-         * @returns {string} RGB color string (e.g., 'rgb(255, 255, 255)').
-         */
-        function getColorForFrequency(count, maxCount) {
-            if (maxCount === 0 || count === 0) {
-                return 'rgb(255, 255, 255)'; // Pure White
+        function saveGridConfig(cols) {
+            try {
+                localStorage.setItem(gridConfigKey, cols);
+            } catch (e) {
+                console.error("Could not save grid config to local storage:", e);
             }
-
-            const ratio = count / maxCount;
-
-            // Target Orange: #ff5722 (R: 255, G: 87, B: 34)
-            // Start White: (R: 255, G: 255, B: 255)
-
-            // Interpolate towards the orange color components
-            const r = 255;
-            const gEnd = 87;
-            const bEnd = 34;
-            const gStart = 255;
-            const bStart = 255;
-
-            // Interpolation: StartValue - ratio * (StartValue - EndValue)
-            const g = Math.round(gStart - ratio * (gStart - gEnd));
-            const b = Math.round(bStart - ratio * (bStart - bEnd));
-
-            return `rgb(${r}, ${g}, ${b})`;
         }
 
-
-        // --- Core Logic ---
-
         /**
-         * Parses the input, calculates frequencies, updates the grid colors, and saves to local storage.
+         * Calculates opacity and blur for the cell's background based on frequency.
+         * Adjusted for more distinct "lighter" and "darker" appearance.
          */
+        function getVisualStylesForFrequency(count, maxCount) {
+            let opacity = 0.05; 
+            let blur = 5;      
+
+            if (maxCount > 0 && count > 0) {
+                const ratio = count / maxCount;
+                
+                // Opacity: from 0.2 (min freq) to 0.9 (max freq)
+                // Lower min opacity for "darker" background, higher max for "lighter" front
+                opacity = 0.2 + ratio * 0.7; 
+                
+                // Blur: from 5px (min freq) down to 0px (max freq)
+                blur = Math.max(0, 5 - (ratio * 5)); 
+            }
+
+            return { opacity: opacity.toFixed(2), blur: blur.toFixed(2) };
+        }
+
         function updateGrid() {
             const rawText = inputElement.value;
-            
-            // Save the current state immediately
-            saveToLocalStorage(rawText);
+            saveInputToLocalStorage(rawText);
 
-            // 1. Parse and Filter Numbers (1-30)
             const numbers = rawText
-                // Replace all non-digit, non-comma, non-newline characters with space, then split by common separators
                 .split(/[\s,]+/g)
                 .map(s => parseInt(s.trim()))
-                // Filter out invalid/empty entries (NaN) and numbers outside 1-30 range
                 .filter(num => !isNaN(num) && num >= 1 && num <= GRID_SIZE);
 
-            // 2. Calculate Frequencies
             const frequencies = {};
             let totalValidCount = 0;
             for (let i = 1; i <= GRID_SIZE; i++) {
-                frequencies[i] = 0; // Initialize all counts to 0
+                frequencies[i] = 0; 
             }
 
             numbers.forEach(num => {
@@ -190,62 +215,73 @@
                 totalValidCount++;
             });
 
-            // 3. Find Max Frequency for scaling
             const maxCount = Math.max(...Object.values(frequencies));
 
-            // 4. Update UI Displays
             totalCountDisplay.textContent = `Total Valid Numbers: ${totalValidCount}`;
             maxFrequencyDisplay.textContent = `Max Frequency: ${maxCount}`;
 
-            // 5. Update Grid Cell Colors and Counts
             for (let i = 1; i <= GRID_SIZE; i++) {
                 const cell = document.getElementById(`cell-${i}`);
                 if (cell) {
                     const count = frequencies[i] || 0;
-                    const color = getColorForFrequency(count, maxCount);
+                    const { opacity, blur } = getVisualStylesForFrequency(count, maxCount);
 
-                    cell.style.backgroundColor = color;
+                    const bgElement = cell.querySelector('.grid-cell-bg');
+                    if (bgElement) {
+                        bgElement.style.opacity = opacity;
+                        bgElement.style.filter = `blur(${blur}px)`;
+                    }
+
                     cell.querySelector('.count').textContent = count > 0 ? count : '';
                     cell.title = `Number ${i}: Count ${count}`;
 
-                    // Add a slight ring/shadow to highlight the max frequency numbers
                     if (count === maxCount && maxCount > 0) {
-                        cell.classList.add('ring-4', 'ring-custom-orange', 'ring-opacity-75');
+                        cell.classList.add('max-freq-float');
                     } else {
-                        cell.classList.remove('ring-4', 'ring-custom-orange', 'ring-opacity-75');
+                        cell.classList.remove('max-freq-float');
                     }
                 }
             }
         }
 
-        /**
-         * Initializes the 5x6 grid structure (30 cells).
-         */
-        function initializeGrid() {
-            let html = '';
-            for (let i = 1; i <= GRID_SIZE; i++) {
-                html += `
-                    <div id="cell-${i}" class="grid-cell rounded-lg relative overflow-hidden transition-all duration-300">
-                        <!-- Number label (top left) -->
-                        <span class="cell-number-label absolute top-1 left-2 text-gray-500 font-normal opacity-70">${i}</span>
-                        <!-- Frequency count (center) -->
-                        <span class="count text-2xl sm:text-3xl font-extrabold text-gray-800"></span>
-                    </div>
-                `;
+        function initializeGrid(cols) {
+            saveGridConfig(cols);
+            gridContainer.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+
+            if (gridContainer.children.length !== GRID_SIZE) {
+                let html = '';
+                for (let i = 1; i <= GRID_SIZE; i++) {
+                    html += `
+                        <div id="cell-${i}" class="grid-cell rounded-lg relative overflow-hidden transition-shadow duration-300">
+                            <div class="grid-cell-bg absolute inset-0 rounded-lg" style="opacity: 0.05; filter: blur(5px);"></div>
+                            <span class="cell-number-label absolute top-1 left-2 font-normal z-20">#${i}</span>
+                            <span class="count text-2xl sm:text-3xl font-extrabold z-20"></span>
+                        </div>
+                    `;
+                }
+                gridContainer.innerHTML = html;
             }
-            gridContainer.innerHTML = html;
+            updateGrid();
         }
 
-        // --- Event Listeners and Initial Setup ---
-
-        // Attach event listener for real-time updates
         inputElement.addEventListener('input', updateGrid);
 
-        // Run initialization on window load
+        gridSelector.addEventListener('change', (e) => {
+            const newCols = parseInt(e.target.value);
+            if (!isNaN(newCols)) {
+                initializeGrid(newCols);
+            }
+        });
+
         window.onload = function() {
-            initializeGrid();
-            loadFromLocalStorage(); // Load saved data
-            updateGrid(); // Run update with loaded data
+            loadInputFromLocalStorage(); 
+            loadGridConfig(); 
+
+            const initialCols = parseInt(gridSelector.value);
+            
+            if (!isNaN(initialCols)) {
+                initializeGrid(initialCols); 
+            }
         };
 
     </script>
